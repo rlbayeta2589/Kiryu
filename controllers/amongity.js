@@ -46,8 +46,10 @@ class Amongity {
 	endGame() {
 		this.GAME_SESSION_ACTIVE = false;
 		this.clearDeadData();
+		this.unmuteAlivePlayers();
 
-		this.sendMessage("Game Session now ended.")
+		this.sendMessage("Game Session now ended.");
+		this.sendMessage("All players will now be unmuted. Feel free to discuss your regrets and failures.");
 	}
 
 	addDeadPlayer(user_id) {
