@@ -83,7 +83,33 @@ class Amongity {
 		this.sendMessage("Alive players are now unmuted. \nThe discussion will now start. \nFind and lynch the **impostors**.")
 	}
 
+	helpCommands() {
+		let help = [
+			"```",
+			"===================COMMANDS===================",
+			"",
+			"/start /startgame",
+			"- Create a new game session",
+			"",
+			"/end /endgame",
+			"- Ends the current game session",
+			"",
+			"/task /mute",
+			"- Mute all players in the active voice channel.",
+			"",
+			"/talk /unmute",
+			"- Unmute all alive players in the active voice channel.",
+			"",
+			"/dead",
+			"- Add player to the dead list. ",
+			"  They will not be unmuted during discussions",
+			"",
+			"==============================================",
+			"```"
+		];
 
+		return help.join('\n');
+	}
 }
 
 module.exports = new Amongity();
