@@ -1,0 +1,21 @@
+{
+  "name": "kiryu",
+  "version": "1.0.0",
+  "description": "GameBot for managing server mutes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Game",
+    "Bot",
+    "ClosetBois"
+  ],
+  "author": "Rey",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.3.1",
+    "dotenv": "^8.2.0",
+    "fs": "0.0.1-security"
+  }
+}
