@@ -1,4 +1,4 @@
-const env = require('dotenv').config();
+const embedhelper = require('./embedhelper');
 
 class Amongity {
 
@@ -8,6 +8,8 @@ class Amongity {
 		this.VOICE_CHANNEL = null;
 
 		this.GAME_SESSION_ACTIVE = false;
+		this.PLAYERS_MUTED = false;
+		this.GAME_TITLE = "AmongUs Game";
 		
 		this.players = [];
 		this.dead = [];
@@ -29,27 +31,39 @@ class Amongity {
 		this.framed = [];
 	}
 
-	sendMessage(msg) {
-		this.CLIENT.channels.cache.get(this.TEXT_CHANNEL).send(msg);
+	getDefaultTitle() {
+		return this.GAME_TITLE;
 	}
 
-	startGame(channel, voice) {
-		this.GAME_SESSION_ACTIVE = true;
+	sendMessage(msg) {
+		return this.CLIENT.channels.cache.get(this.TEXT_CHANNEL).send(msg);
+	}
 
+	startGame(channel, voice, icon, user, title) {
+		this.GAME_SESSION_ACTIVE = true;
 		this.TEXT_CHANNEL = channel;
 		this.VOICE_CHANNEL = voice;
 
-		this.sendMessage("Game is now started.\nPlease join in the voice " +
-			"channel and in the room using the provided code.");
+		const startEmbed = embedhelper.gameData(user, title, icon).startGameEmbed();
+		this.sendMessage(startEmbed).then(async embedMessage => {
+			await embedMessage.react('🔊');
+			await embedMessage.react('🔇');
+			await embedMessage.react('☠️');
+			await embedMessage.react('🚫');
+		});
 	}
 
-	endGame() {
-		this.GAME_SESSION_ACTIVE = false;
-		this.clearDeadData();
-		this.unmuteAlivePlayers();
+	endGame(msg = null) {
+		if (!this.GAME_SESSION_ACTIVE) return;
 
-		this.sendMessage("Game Session now ended.");
-		this.sendMessage("All players will now be unmuted. Feel free to discuss your regrets and failures.");
+		this.GAME_SESSION_ACTIVE = false;
+		this.PLAYERS_MUTED = false;
+		this.clearDeadData();
+		this.unmuteAlivePlayers(false);
+
+		if (msg != null) {
+			msg.edit(embedhelper.endGameEmbed());
+		}
 	}
 
 	addDeadPlayer(user_id) {
@@ -58,10 +72,12 @@ class Amongity {
 		let dead_imp = "If you are an **imposter**, you can help your teammate by using sabotage.";
 		
 		this.dead.push(user_id);
-		this.sendMessage([dead_msg, dead_crew, dead_imp].join('\n'));
+		// this.sendMessage([dead_msg, dead_crew, dead_imp].join('\n'));
 	}
 
-	muteAllPlayers() {
+	muteAllPlayers(msg = null) {
+		if (this.PLAYERS_MUTED || !this.GAME_SESSION_ACTIVE) return;
+
 		let channel = this.CLIENT.channels.cache.get(this.VOICE_CHANNEL);
 		let members = channel.members;
 
@@ -69,10 +85,15 @@ class Amongity {
 			member.voice.setMute(true)
 		}
 
-		this.sendMessage("All players are now muted.")
+		if (msg != null) {
+			msg.edit(embedhelper.muteEmbed());
+		}
+		this.PLAYERS_MUTED = true;
 	}
 
-	unmuteAlivePlayers() {
+	unmuteAlivePlayers(msg = null, display_msg = true) {
+		if (!this.PLAYERS_MUTED || !this.GAME_SESSION_ACTIVE) return;
+
 		let channel = this.CLIENT.channels.cache.get(this.VOICE_CHANNEL);
 		let members = channel.members;
 
@@ -82,7 +103,10 @@ class Amongity {
 			}
 		}
 
-		this.sendMessage("Alive players are now unmuted. \nThe discussion will now start. \nFind and lynch the **impostors**.")
+		this.PLAYERS_MUTED = false;
+		if (display_msg && msg != null) {
+			msg.edit(embedhelper.unmuteEmbed());
+		}
 	}
 
 	helpCommands() {
@@ -92,18 +116,20 @@ class Amongity {
 			"",
 			"/start /startgame",
 			"- Create a new game session",
-			"",
-			"/end /endgame",
-			"- Ends the current game session",
-			"",
-			"/task /mute",
-			"- Mute all players in the active voice channel.",
-			"",
-			"/talk /unmute",
-			"- Unmute all alive players in the active voice channel.",
+			"  Please react using designated emojis for the game function",
+			"  You can customize the game title via '/start <title>'",
+			// "",
+			// "/end /endgame",
+			// "- Ends the current game session",
+			// "",
+			// "/task /mute",
+			// "- Mute all players in the active voice channel.",
+			// "",
+			// "/talk /unmute",
+			// "- Unmute all alive players in the active voice channel.",
 			"",
 			"/dead",
-			"- Add player to the dead list. ",
+			"- Manually add player to the dead list. ",
 			"  They will not be unmuted during discussions",
 			"",
 			"==============================================",

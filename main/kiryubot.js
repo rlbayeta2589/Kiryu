@@ -3,7 +3,8 @@ const env = require('dotenv').config();
 const fs = require('fs');
 
 const amongity = require('../controllers/amongity');
-
+const modelhelper = require('../controllers/modelhelper');
+const embedhelper = require('../controllers/embedhelper');
 
 class KiryuBot {
     constructor() {
@@ -24,8 +25,13 @@ class KiryuBot {
         console.log('Preparing bot . . .');
         this.bindReadyEvent();
 
+        console.log('Initializing helpers . . .');
+        modelhelper.initialize();
+
         console.log('Getting ready for messages . . .');
         this.bindMessageEvent();
+        this.bindReactionAddEvent();
+        this.bindReactionRemoveEvent();
 
         console.log('Importing bot commands . . .');
         this.importCommands();
@@ -80,6 +86,37 @@ class KiryuBot {
         });
     }
 
+    bindReactionAddEvent() {
+        this.client.on('messageReactionAdd', (reaction, user) => {
+            if (user.bot) return;
+            this.reactionCommand(reaction.message, reaction.emoji.name);
+        });
+    }
+
+    bindReactionRemoveEvent() {
+        this.client.on('messageReactionRemove', (reaction, user) => {
+            if (user.bot) return;
+            this.reactionCommand(reaction.message, reaction.emoji.name);
+        });
+    }
+
+    reactionCommand(msg, emote) {
+        let valid_emoji = ['🔊','🔇','🚫'];
+        
+        if (!valid_emoji.includes(emote)) return;
+
+        if (emote == valid_emoji[0]) {
+            return amongity.unmuteAlivePlayers(msg);
+        }
+
+        if (emote == valid_emoji[1]) {
+            return amongity.muteAllPlayers(msg);
+        }
+
+        if (emote == valid_emoji[2]) {
+            return amongity.endGame(msg);
+        }
+    }
  }
 
  module.exports = new KiryuBot();

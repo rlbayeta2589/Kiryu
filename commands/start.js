@@ -14,6 +14,15 @@ module.exports = {
             return message.reply('Please join a voice channel to start.');
         }
 
-        amongity.startGame(message.channel.id, message.member.voice.channel.id);
+		let title = amongity.getDefaultTitle();
+		if (args.length && args[0].trim() != "") {
+			title = args[0];
+		}
+
+		amongity.startGame(message.channel.id, 
+			message.member.voice.channel.id,
+			message.guild.iconURL(),
+			message.member.displayName,
+			title);
 	},
 };
