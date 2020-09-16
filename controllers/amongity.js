@@ -56,10 +56,12 @@ class Amongity {
 	endGame(msg = null) {
 		if (!this.GAME_SESSION_ACTIVE) return;
 
+		
+		this.clearDeadData();
+		this.unmuteAlivePlayers(null, false);
+
 		this.GAME_SESSION_ACTIVE = false;
 		this.PLAYERS_MUTED = false;
-		this.clearDeadData();
-		this.unmuteAlivePlayers(false);
 
 		if (msg != null) {
 			msg.edit(embedhelper.endGameEmbed());
@@ -91,8 +93,8 @@ class Amongity {
 		this.PLAYERS_MUTED = true;
 	}
 
-	unmuteAlivePlayers(msg = null, display_msg = true) {
-		if (!this.PLAYERS_MUTED || !this.GAME_SESSION_ACTIVE) return;
+	unmuteAlivePlayers(msg = null, still_active = true) {
+		if (!this.GAME_SESSION_ACTIVE) return;
 
 		let channel = this.CLIENT.channels.cache.get(this.VOICE_CHANNEL);
 		let members = channel.members;
@@ -104,7 +106,7 @@ class Amongity {
 		}
 
 		this.PLAYERS_MUTED = false;
-		if (display_msg && msg != null) {
+		if (still_active && msg != null) {
 			msg.edit(embedhelper.unmuteEmbed());
 		}
 	}
